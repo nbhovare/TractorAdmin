@@ -1,0 +1,1 @@
+<div class="app-footer">© <a href="#" target="_blank">RjtechX</a></div>
