@@ -10,6 +10,14 @@ if (isset($_SESSION["user"])) {
 	$DT=date("hms");	
 
 
+	// Check if Generated Invoice ID Already Exists or not
+
+	$checkIfInvoiceAlreadyExistsQ="SELECT invoice_id FROM invoice WHERE invoice_id='".$randomNumber.$DT."'";
+	$checkIfInvoiceAlreadyExistsEQ=mysqli_query($conn,$checkIfInvoiceAlreadyExistsQ);
+	if($checkIfInvoiceAlreadyExistsEQ && mysqli_num_rows($checkIfInvoiceAlreadyExistsEQ) > 0){
+		header("Refresh:0");		
+	}
+
 
 ?>
 <!doctype html>
@@ -34,6 +42,84 @@ if (isset($_SESSION["user"])) {
 
 			getProductType();
 
+
+
+			// Check if Invoice ID Already Exists or not
+
+
+			$("#createInvoice").click(function(){
+				// Create Invoice
+				
+				const invoice_date=$("#invoice_date").val();
+				const invoice_id=$("#invoice_id").val();
+				const pay_terms=$("#pay_terms").val();
+				const due_date=$("#due_date").val();
+				const notes=$("#notes").val();
+				const cust_id=$("#cust_id").val();
+
+				function isEmpty(value) {
+					return value === null || value === undefined || value === '';
+				}
+
+				var error_msg=null;
+
+				if (isEmpty(cust_id)) {
+					error_msg="Select Customer ID is empty";
+				}
+
+				if (isEmpty(invoice_date)) {
+					error_msg="Invoice date is empty";
+				}
+
+				if (isEmpty(invoice_id)) {
+					error_msg="Invoice ID is empty";
+				}
+
+				if (isEmpty(pay_terms)) {
+					error_msg="Select Payment terms Properly";
+				}
+
+				if (isEmpty(due_date)) {
+					error_msg="Due date is empty";
+				}
+								
+				if(!isEmpty(error_msg)){
+					alert(error_msg);
+				}
+				else{
+					
+					const usrconfirm=confirm("Are you sure you want to proceed, You will not be able to edit this invoice later");
+
+					if(usrconfirm){
+						var data={
+							"type": "createInvoice",
+							"invoice_id": invoice_id,
+							"invoice_date": convertDateFormat(invoice_date),
+							"pay_terms": pay_terms,
+							"due_date": convertDateFormat(due_date),
+							"notes": notes,
+							"cust_id": cust_id
+						}
+						$.ajax({
+							url: 'function/invoice.php',
+							type: 'POST',				
+							data: {datas: JSON.stringify(data)},								
+							success: function(response) {			
+								if(response==="true"){											
+									window.location.href = "view-invoice.php?invoice_id="+invoice_id;				
+								}	
+								else{
+									alert(response);
+								}														
+							},
+							error: function(error) {
+								console.log(error);
+							}
+						});							
+					}					
+				}
+				
+			});
 
 			$("#saveAsDraft").click(function(){
 				const invoice_date=$("#invoice_date").val();
@@ -699,7 +785,7 @@ if (isset($_SESSION["user"])) {
 											<div class="form-actions-footer">
 												<div class="text-end">
 													<button class="btn btn-light" id="saveAsDraft">Save as Draft</button>
-													<button class="btn btn-primary ms-1" onclick="printElement('printableArea')">Create Invoice</button>
+													<button class="btn btn-primary ms-1" id="createInvoice">Create Invoice</button>
 												</div>
 											</div>
 										</div>
@@ -751,7 +837,7 @@ if (isset($_SESSION["user"])) {
 					const discount_D=response.data[0].discount;
 					const count=response.data[0].count;
 
-					const total_amt_D=subtotal_D-(subtotal_D*(discount_D/count)%);
+					const total_amt_D=subtotal_D-(subtotal_D*(discount_D/count)/100);
 					$("#subtotal_table").text(subtotal_D);
 					$("#discount_table").text(discount_D);			
 					$("#total_amt_table").text(total_amt_D);								

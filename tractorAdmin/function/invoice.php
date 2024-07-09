@@ -17,6 +17,19 @@
         }
     }
 
+    function checkIfInvoiceHasSubEntries($conn, $invoice_id){
+        // Check if Invoice has sub entries/ products under
+
+        $checkifInvoiceHasSubEntriesQ="SELECT invoice_id FROM invoice_sub WHERE invoice_id='".$invoice_id."'";
+        $checkifInvoiceHasSubEntriesEQ=mysqli_query($conn, $checkifInvoiceHasSubEntriesQ);
+        if($checkifInvoiceHasSubEntriesEQ && mysqli_num_rows($checkifInvoiceHasSubEntriesEQ) > 0){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
     function checkIfInvoiceAlreadyExists($conn,$invoice_id){
         // check if invoice already exists
 
@@ -37,6 +50,44 @@
         $type=$invoiceData["type"];
 
         switch($type){
+
+            // Status R means Rejected, D meand Draft, F means Finalized in Invoice Status
+
+            case "createInvoice":
+                $invoice_id = $invoiceData["invoice_id"];
+                $invoice_date = $invoiceData["invoice_date"];
+                $due_date = $invoiceData["due_date"];
+                $pay_terms = $invoiceData["pay_terms"];
+                $notes = $invoiceData["notes"];
+                $cust_id = $invoiceData["cust_id"];
+                $status = "F";
+
+                if(!checkIfInvoiceAlreadyExists($conn,$invoice_id)){
+                    createInvoiceEntry($conn,$invoice_id,$cust_id,$cur_user );
+                }
+
+                if(checkIfInvoiceHasSubEntries($conn, $invoice_id)){
+                    $stmt = $conn->prepare("UPDATE invoice SET date = ?, payment_terms = ?, due_date = ?, notes = ?, status = ?, cust_id = ? WHERE invoice_id = ?");
+
+                    if ($stmt === false) {
+                        die("Error preparing statement: " . $conn->error);
+                    }
+
+                    $stmt->bind_param('sssssii', $invoice_date, $pay_terms, $due_date, $notes, $status, $cust_id, $invoice_id);            
+
+                    if ($stmt->execute()) {        
+                        echo "true";            
+                    } else {
+                        echo "false";            
+                    }
+                    //executeQ($stmt);     
+                    $stmt->close();                     
+                }
+                else{
+                    echo "Error creating invoice, add items to invoice before proceeding";
+                }
+                                                                            
+            break;
 
             case "saveInvoice":
                 $invoice_id = $invoiceData["invoice_id"];
