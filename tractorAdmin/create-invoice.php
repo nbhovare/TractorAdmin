@@ -21,10 +21,72 @@ if (isset($_SESSION["user"])) {
 
     ?>
 
+
+<script>
+	function convertDateFormat(date) {
+    const [month, day, year] = date.split('/');
+    return `${year}-${month}-${day}`;
+}
+</script>
+
 	<script>
 		$(document).ready(function(){
 
 			getProductType();
+
+
+			$("#saveAsDraft").click(function(){
+				const invoice_date=$("#invoice_date").val();
+				const invoice_id=$("#invoice_id").val();
+				const pay_terms=$("#pay_terms").val();
+				const due_date=$("#due_date").val();
+				const notes=$("#notes").val();
+				const cust_id=$("#cust_id").val();
+
+				function isEmpty(value) {
+					return value === null || value === undefined || value === '';
+				}
+
+				var error_msg=null;
+
+				if (isEmpty(cust_id)) {
+					error_msg="Select Customer ID is empty";
+				}
+
+				if (isEmpty(invoice_date)) {
+					error_msg="Invoice date is empty";
+				}
+
+				if (isEmpty(invoice_id)) {
+					error_msg="Invoice ID is empty";
+				}
+
+				if (isEmpty(pay_terms)) {
+					error_msg="Select Payment terms Properly";
+				}
+
+				if (isEmpty(due_date)) {
+					error_msg="Due date is empty";
+				}
+								
+				if(!isEmpty(error_msg)){
+					alert(error_msg);
+				}
+				else{
+					var data={
+						"type": "saveInvoice",
+						"invoice_id": invoice_id,
+						"invoice_date": convertDateFormat(invoice_date),
+						"pay_terms": pay_terms,
+						"due_date": convertDateFormat(due_date),
+						"notes": notes,
+						"cust_id": cust_id
+					}
+					saveDraft(data);
+				}
+				
+
+			});
 
 
 			$("#product_type_id").on('change', function(){				
@@ -221,7 +283,7 @@ if (isset($_SESSION["user"])) {
 								<div class="card-header-lg">
 									<h4>Create Invoice</h4>
 									<div class="text-end">
-										<a href="view-invoice.html" class="btn btn-light">View Invoice</a>
+										<a href="view-invoice.html" target="_blank" class="btn btn-light">View Invoice</a>
 									</div>
 								</div>
 								<div class="card-body">
@@ -240,7 +302,7 @@ if (isset($_SESSION["user"])) {
 												<div class="col-12">
 													<!-- Field wrapper start -->
 												<div class="field-wrapper">
-													<select class="select-single js-states" title="Select Product Category" data-live-search="true">
+													<select class="select-single js-states" id="cust_id" title="Select Product Category" data-live-search="true">
 													
 														<?php
 
@@ -409,7 +471,7 @@ if (isset($_SESSION["user"])) {
 													<!-- Field wrapper start -->
 													<div class="field-wrapper">
 														<div class="input-group">
-															<input type="text" class="form-control datepicker">
+															<input type="text" class="form-control datepicker" id="invoice_date">
 															<span class="input-group-text">
 																<i class="icon-calendar1"></i>
 															</span>
@@ -421,7 +483,7 @@ if (isset($_SESSION["user"])) {
 												<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
 													<!-- Field wrapper start -->
 													<div class="field-wrapper">
-														<input type="text" class="form-control" 
+														<input type="text" class="form-control" id="invoice_id"
 															value="<?php echo $randomNumber.$DT; ?>" disabled>															
 														<div class="field-placeholder">Invoice No</div>
 													</div>
@@ -431,7 +493,7 @@ if (isset($_SESSION["user"])) {
 													<!-- Field wrapper start -->
 													<div class="field-wrapper">
 														<select class="select-single js-states" title="Select Term"
-															data-live-search="true">
+															data-live-search="true" id="pay_terms">
 															<option>Monthly</option>
 															<option>Quarterly</option>
 															<option>Yearly</option>
@@ -445,7 +507,7 @@ if (isset($_SESSION["user"])) {
 													<div class="field-wrapper">
 														<div class="input-group">
 															<input type="text"
-																class="form-control datepicker-opens-left">
+																class="form-control datepicker-opens-left" id="due_date">
 															<span class="input-group-text">
 																<i class="icon-calendar1"></i>
 															</span>
@@ -457,7 +519,7 @@ if (isset($_SESSION["user"])) {
 												<div class="col-12">
 													<!-- Field wrapper start -->
 													<div class="field-wrapper">
-														<textarea class="form-control" rows="3"></textarea>
+														<textarea class="form-control" rows="3" id="notes"></textarea>
 														<div class="field-placeholder">Notes</div>
 													</div>
 													<!-- Field wrapper end -->
@@ -588,7 +650,7 @@ if (isset($_SESSION["user"])) {
 														<tr>
 															<th colspan="7" class="pt-3 pb-3">Invoice Details</th>
 														</tr>
-														<tr>
+														<tr>															
 															<th>Product Type</th>
 															<th>Product</th>
 															<th>Quantity</th>
@@ -604,16 +666,16 @@ if (isset($_SESSION["user"])) {
 														<tr>
 															<td colspan="4">&nbsp;</td>
 															<td colspan="2">
-																<p class="m-0">Subtotal</p>
-																<p class="m-0">Discount</p>
-																<p class="m-0">VAT</p>
-																<h5 class="mt-2">Total Amount</h5>
+																<p class="m-0">Subtotal ₹</p>
+																<p class="m-0">Discount %</p>
+																<p class="m-0">VAT %</p>
+																<h5 class="mt-2">Total Amount ₹</h5>
 															</td>
 															<td>
-																<p class="m-0">₹0.00</p>
-																<p class="m-0">₹0.00</p>
-																<p class="m-0">₹0.00</p>
-																<h5 class="mt-2">₹0.00</h5>
+																<p class="m-0" id="subtotal_table">0</p>
+																<p class="m-0" id="discount_table">0</p>
+																<p class="m-0">0</p>
+																<h5 class="mt-2" id="total_amt_table">0</h5>
 															</td>
 														</tr>
 												</table>
@@ -626,10 +688,17 @@ if (isset($_SESSION["user"])) {
 									<!-- Row start -->
 									<div class="row gutters">
 
+
+										<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+											<div class="form-actions-footer">
+												<h5 style='color:red'>Note: Remember to save Invoice Details</h5>
+											</div>
+										</div>
+
 										<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
 											<div class="form-actions-footer">
 												<div class="text-end">
-													<button class="btn btn-light">Save as Draft</button>
+													<button class="btn btn-light" id="saveAsDraft">Save as Draft</button>
 													<button class="btn btn-primary ms-1" onclick="printElement('printableArea')">Create Invoice</button>
 												</div>
 											</div>
@@ -670,8 +739,52 @@ if (isset($_SESSION["user"])) {
 	<script>
 		let lastInserted=0;
 
+
+		function getTotal(invoice_id){
+			$.ajax({
+				url: 'function/get_invoice.php',
+				type: 'POST',				
+				data: "invoice_id="+invoice_id,								
+				success: function(response) {			
+					
+					const subtotal_D=response.data[0].subtotal;
+					const discount_D=response.data[0].discount;
+					const count=response.data[0].count;
+
+					const total_amt_D=subtotal_D-(subtotal_D*(discount_D/count)%);
+					$("#subtotal_table").text(subtotal_D);
+					$("#discount_table").text(discount_D);			
+					$("#total_amt_table").text(total_amt_D);								
+				},
+				error: function(error) {
+					console.log(error);
+				}
+			});				
+		}
+
+		function saveDraft(datas){
+						
+			// Save Draft
+			$.ajax({
+				url: 'function/invoice.php',
+				type: 'POST',				
+				data: {datas: JSON.stringify(datas)},								
+				success: function(response) {			
+					if(response==="true"){		
+						getTotal(datas.invoice_id);				
+						alert("Saved As Draft");						
+					}	
+					else{
+						alert("Error Saving Data");
+					}														
+				},
+				error: function(error) {
+					console.log(error);
+				}
+			});	
+		}
 	
-		function addRow() {
+			function addRow() {
   // Get the first row from the source table
   var sourceRow = document.querySelector('#invoiceTable tbody tr');
   
@@ -682,6 +795,8 @@ if (isset($_SESSION["user"])) {
   var cells = sourceRow.getElementsByTagName('td');
   var isEmpty = false; // Flag to check for empty values
   
+  var data={};
+
   for (var i = 0; i < cells.length; i++) {
     var cell = cells[i];
     var newCell = document.createElement('td');
@@ -696,7 +811,8 @@ if (isset($_SESSION["user"])) {
         isEmpty = true;
         break; // Exit the loop if an empty value is found
       }	  
-      newCell.textContent = input.value;
+      newCell.textContent = input.value;	  
+	  data[input.id]=input.value;	  
     } else if (select) {
       // If it's a select element, copy the selected option text
       if (select.value.trim() === '') {
@@ -708,9 +824,11 @@ if (isset($_SESSION["user"])) {
         break; // Exit the loop if an empty value is found		
 	  }
       newCell.textContent = select.options[select.selectedIndex].text;
+	  data[select.id]=select.options[select.selectedIndex].value;
     } else {
       // If it's a plain cell, copy its text content
       newCell.textContent = cell.textContent;
+	  data[cell]=cell.textContent;
     }	
     // Append the new cell to the new row
     newRow.appendChild(newCell);
@@ -721,7 +839,7 @@ if (isset($_SESSION["user"])) {
 		"id": lastInserted,
 		"onclick":"removeRow(this)"
 	}).text("Remove Entry");
-    
+    	
 	var newCell = document.createElement('td');
 	$(newCell).append(checkbox);
 	newRow.appendChild(newCell);
@@ -730,12 +848,18 @@ if (isset($_SESSION["user"])) {
   if (isEmpty) {
     alert('Please fill in all the fields.');
   } else {
+	
+	data.cust_id=$("#cust_id").val();
+	data.invoice_id=$("#invoice_id").val();
+	data.sub_invoice_id=lastInserted;	
+	data.type="insert";	
+	saveDraft(data);		
+
     // Append the new row to the target table body
 	const tb=$("#invoiceTableFinals");
 	tb.find("tr").eq(lastInserted+1).after(newRow);
 	lastInserted+=1;
-    //var targetTableBody = document.getElementById('invoiceTableFinals');
-    //targetTableBody.appendChild(newRow);
+		
   }
   resetFormElements();
 }
@@ -812,15 +936,31 @@ if (isset($_SESSION["user"])) {
   });
 }
 
-
-
-
-
-
-function removeRow(button) {
-	$(button).closest('tr').remove();
-	var buttonId = $(button).attr('id');
-	console.log(buttonId);
+function removeRow(button) {	
+	var buttonId = $(button).attr('id');	
+	var data={
+		type:"delete",
+		sub_id: buttonId,
+		invoice_id: $("#invoice_id").val()
+	};
+	$.ajax({
+		url: 'function/invoice.php',
+		type: 'POST',				
+		data: {datas: JSON.stringify(data)},								
+		success: function(response) {			
+			if(response==="true"){		
+				$(button).closest('tr').remove();				
+				alert("Saved As Draft");				
+				getTotal(data.invoice_id);
+			}	
+			else{
+				alert("Error Saving Data");
+			}														
+		},
+		error: function(error) {
+			console.log(error);
+		}
+	});	
 }
 </script>
 
