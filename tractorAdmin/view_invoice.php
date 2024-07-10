@@ -144,6 +144,20 @@
 }
 </style>
 
+
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+
+
+
+
+
+
 <body>
 	
 
@@ -158,9 +172,24 @@
 							<div class="row gutters">
 								<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
 									<div class="custom-actions-btns mb-5">
-										<a href="#" class="btn btn-primary">
+										<button type="button" class="btn btn-primary" onclick="downloadPdf()">
 											<i class="icon-download"></i> Download
-										</a>
+										</button>
+
+										
+<script>
+        function downloadPDF() {
+            var element = document.getElementById('printable');
+            html2pdf(element, {
+                margin:       1,
+                filename:     'document.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            });
+        }
+    </script>
+
 										<button href="#" class="btn btn-secondary" onclick="window.print();">
 											<i class="icon-printer"></i> Print
 										</button>
@@ -171,7 +200,7 @@
 							<!-- Row start -->
 							<div class="row gutters" id="printable">
 								<div class="col-xl-6 col-lg-6 col-md-6 col-sm-6">
-									<a href="index.html">
+									<a >
 										<img src="../assets/image/logo/head-logo.png" width="250" height="100" class="img-fluid">
 									</a>
 								</div>
@@ -223,7 +252,37 @@
 												</tr>
 											</thead>
 											<tbody>
-												<tr>
+
+
+											<?php 
+											
+	$getSubInvoiceDataQ="SELECT mproducttypename.name as product_type_name, mproductddetailstable.name as product_name, quantity, invoice_sub.total_cost as total_cost, discount, amt_net, status
+
+													FROM invoice_sub
+													INNER JOIN mproductddetailstable on mproductddetailstable.product_id=invoice_sub.product_id
+													INNER JOIN mproducttypename on mproducttypename.product_type_id=invoice_sub.product_type_id
+													WHERE invoice_id='".$invoice_id."'";													
+
+													$getSubInvoiceDataEQ=mysqli_query($conn, $getSubInvoiceDataQ);													
+
+													if($getSubInvoiceDataEQ && mysqli_num_rows($getSubInvoiceDataEQ) > 0){
+														while($row=mysqli_fetch_assoc($getSubInvoiceDataEQ)){
+															echo "<tr>";
+																echo "<td>".$row['product_type_name']."</td>";
+																echo "<td>".$row['product_name']."</td>";
+																echo "<td>".$row['quantity']."</td>";
+																echo "<td>".$row['total_cost']."</td>";
+																echo "<td>".$row['discount']."</td>";
+																echo "<td>".$row['amt_net']."</td>";
+															echo "</tr>";
+														}														
+													}
+													else{
+														echo "Error";
+													}
+											?>
+
+												<!--<tr>
 													<td>
 														Wordpress Template
 														<p class="m-0 text-muted">
@@ -233,48 +292,51 @@
 													<td>#50000981</td>
 													<td>9</td>
 													<td>$5000.00</td>
-												</tr>
-												<tr>
-													<td>
-														Maxwell Admin Template
-														<p class="m-0 text-muted">
-															As well as a random Lipsum generator.
-														</p>
-													</td>
-													<td>#50000126</td>
-													<td>5</td>
-													<td>$100.00</td>
-												</tr>
-												<tr>
-													<td>
-														Unify Admin Template
-														<p class="m-0 text-muted">
-															Lorem ipsum has become the industry standard.
-														</p>
-													</td>
-													<td>#50000821</td>
-													<td>6</td>
-													<td>$49.99</td>
-												</tr>
+												</tr>-->			
+												
+												<?php	
+													
+													$getDataFromTableQ="SELECT 
+														SUM(quantity * total_cost) AS subtotal,
+														SUM((quantity * total_cost) * (discount / 100)) AS discount,
+														SUM((quantity * total_cost) - ((quantity * total_cost) * (discount / 100))) AS total_amount
+														FROM 
+															invoice_sub
+														WHERE 
+															invoice_id = '" . $invoice_id . "'";
+													
+													$getDataFromTableQEQ=mysqli_query($conn,$getDataFromTableQ);
+													if($getDataFromTableQEQ &&  mysqli_num_rows($getDataFromTableQEQ) > 0){
+														$rows=mysqli_fetch_all($getDataFromTableQEQ, MYSQLI_ASSOC);
+														$rowD=$rows[0];
+												?>
+												
 												<tr>
 													<td>&nbsp;</td>
+													<td>&nbsp;</td>
+													<td>&nbsp;</td>													
 													<td colspan="2">
 														<p>
-															Subtotal<br>
-															Shipping &amp; Handling<br>
-															Tax<br>
+															Subtotal<br>															
+															Total Disocunt<br>
 														</p>
 														<h5 class="text-success"><strong>Grand Total</strong></h5>
 													</td>			
 													<td>
 														<p>
-															$5000.00<br>
-															$100.00<br>
-															$49.00<br>
+															₹ <?php echo $rowD['subtotal'];  ?><br>															
+															₹ <?php echo $rowD['discount']; ?><br>
 														</p>
-														<h5 class="text-success"><strong>$5150.99</strong></h5>
+														<h5 class="text-success"><strong>₹ <?php echo $rowD['total_amount']; ?></strong></h5>
 													</td>
 												</tr>
+												<?php
+													}
+													else{
+														echo "Error";
+													}
+
+												?>
 											</tbody>
 										</table>
 									</div>

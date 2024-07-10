@@ -833,14 +833,17 @@ if (isset($_SESSION["user"])) {
 				data: "invoice_id="+invoice_id,								
 				success: function(response) {			
 					
-					const subtotal_D=response.data[0].subtotal;
+					/*const subtotal_D=response.data[0].subtotal;
 					const discount_D=response.data[0].discount;
 					const count=response.data[0].count;
 
 					const total_amt_D=subtotal_D-(subtotal_D*(discount_D/count)/100);
 					$("#subtotal_table").text(subtotal_D);
 					$("#discount_table").text(discount_D);			
-					$("#total_amt_table").text(total_amt_D);								
+					$("#total_amt_table").text(total_amt_D);								*/
+					$("#subtotal_table").text(response.data[0].subtotal);
+					$("#discount_table").text(response.data[0].discount);			
+					$("#total_amt_table").text(response.data[0].total_amount);
 				},
 				error: function(error) {
 					console.log(error);
