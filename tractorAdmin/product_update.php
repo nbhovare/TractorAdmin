@@ -253,7 +253,7 @@ headerArray.forEach(function(header) {
                                     $tempname = null;
                                     $folder = null;
 
-                                    $sql = "UPDATE mproductddetailstable SET name='".$pro_name."',product_type_id='".$productType."',hp_id='".$hp_id."',company_id='".$brand_id."',chassis_no='".$chassis_no."',engine_no='".$engine_no."',key_no='".$key_no."',ex_showroom='".$ex_showroom."',insurance='".$insurance."',regd='".$regd."',hpa='".$hpa."',agreement='".$agreement."',access='".$access."',misc='".$misc."',other_cost='".$other_cost."',total_cost='".$total_cost."',editor='".$editor."'";
+                                    $sql = "UPDATE mproductddetailstable SET name='".$pro_name."',product_type_id='".$productType."',hp_id='".$hp_id."',company_id='".$brand_id."',chassis_no='".$chassis_no."',engine_no='".$engine_no."',key_no='".$key_no."',ex_showroom='".$ex_showroom."',insurance='".$insurance."',regd='".$regd."',hpa='".$hpa."',agreement='".$agreement."',access='".$access."',misc='".$misc."',other_cost='".$other_cost."',total_cost='".$total_cost."',editor='".$editor."' WHERE product_id=".$product_id."";
 
                                     if (isset($_FILES['product_file']) && $_FILES['product_file']['error'] === UPLOAD_ERR_OK) {
                                                                                                                                                          
@@ -376,10 +376,10 @@ headerArray.forEach(function(header) {
                                                 <div class="field-wrapper-group">
                                                     <!-- Field wrapper start -->
                                                     <div class="field-wrapper">
-                                                        <input class="form-control" name="pro_name" id="pro_name" type="text" placeholder="Model Name" required>
-                                                        <div class="field-placeholder">Model Name<span class="text-danger">*</span></div>
+                                                        <input class="form-control" name="pro_name" id="pro_name" type="text" placeholder="Product Name" required>
+                                                        <div class="field-placeholder">Product Name<span class="text-danger">*</span></div>
                                                         <div class="form-text">
-                                                            Please enter model name.
+                                                            Please enter Product Name.
                                                         </div>
                                                     </div> <button type="button" class="input-icon-block btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Product Model With Company">
                                                                 <i class="icon-info-with-circle m-0"></i>

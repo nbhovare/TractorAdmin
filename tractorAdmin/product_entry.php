@@ -232,10 +232,10 @@ if (isset($_SESSION["user"])) {
                                                 <div class="field-wrapper-group">
                                                     <!-- Field wrapper start -->
                                                     <div class="field-wrapper">
-                                                        <input class="form-control" name="pro_name" id="pro_name" type="text" placeholder="Model Name" required>
-                                                        <div class="field-placeholder">Model Name<span class="text-danger">*</span></div>
+                                                        <input class="form-control" name="pro_name" id="pro_name" type="text" placeholder="Product Name" required>
+                                                        <div class="field-placeholder">Product Name<span class="text-danger">*</span></div>
                                                         <div class="form-text">
-                                                            Please enter model name.
+                                                            Please enter Product name.
                                                         </div>
                                                     </div> <button type="button" class="input-icon-block btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Product Model With Company">
                                                                 <i class="icon-info-with-circle m-0"></i>

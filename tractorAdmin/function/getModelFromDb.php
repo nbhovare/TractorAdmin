@@ -6,7 +6,7 @@ $brand_id = $_POST['brand_id'];
 $product_type_id = $_POST['product_type_id'];
 // exit();
 
-$getDataFromTableQ="SELECT name FROM mproductddetailstable WHERE activeStatus='Y' AND product_type_id='".$product_type_id."'";
+$getDataFromTableQ="SELECT product_id as id, name FROM mproductddetailstable WHERE activeStatus='Y' AND product_type_id='".$product_type_id."'";
 
 $getDataFromTableQEQ=mysqli_query($conn,$getDataFromTableQ);
 if($getDataFromTableQEQ &&  mysqli_num_rows($getDataFromTableQEQ) > 0){

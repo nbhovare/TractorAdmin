@@ -15,6 +15,28 @@ if (isset($_SESSION["user"])) {
     <script>
         // Your JavaScript code using jQuery
         $(document).ready(function(){       
+
+            $("#StockEntryForm").submit(function(e){
+                e.preventDefault();       
+                const brand_id=$("#brand_id").val();
+                const product_type_id=$("#product_type_id").val();
+                const pro_name=$("#pro_name").val();
+                
+                if(brand_id===null || brand_id===undefined || brand_id==="Select Brand" || brand_id==="No data available" || brand_id===""){                    
+                    alert("Select Brand Properly");
+                }
+                else if(product_type_id===null || product_type_id===undefined || product_type_id==="Select Category Type" || product_type_id==="No data available" || product_type_id===""){                    
+                    alert("Select Product Category Properly");
+                }
+                else if(pro_name===null || pro_name===undefined || pro_name==="Select Product" || pro_name==="No data available" || pro_name===""){                    
+                   alert("Select Product Properly");
+                }
+                else{
+                    this.submit();
+                }
+                
+            });
+
             $("#brand_id").on('change', function() {        
                 if(this.value==="Select Brand"){
                     $("#product_type_id").prop("disabled",true);
@@ -27,16 +49,16 @@ if (isset($_SESSION["user"])) {
             $("#product_type_id").on('change', function(){
                 if(this.value==="Select Category Type"){
                     alert("Select Category Type");
-                    $("#model_name").prop("disabled",true);
-                    $("#model_name").empty();
+                    $("#pro_name").prop("disabled",true);
+                    $("#pro_name").empty();
                 }
                 /*else if(this.value==="Other"){                    
                     $("#model_name").prop("disabled",false);                    
                 }*/
                 else{
-                    $("#model_name").prop("disabled",false).empty();                    
-                    $("#model_name").append(
-                        "<option value='Select Model Name'>Select Model Name</option>"
+                    $("#pro_name").prop("disabled",false).empty();                    
+                    $("#pro_name").append(
+                        "<option value='Select Product'>Select Product</option>"
                     );
                     // Get Model Names From Databases
                     const product_type_id= $("#product_type_id").val();
@@ -48,16 +70,16 @@ if (isset($_SESSION["user"])) {
                         data: "brand_id="+brand_id+"&product_type_id="+product_type_id,
                         success: function(response) {
                             if(response && response.data && response.data.length > 0) {
-                           // Append options to the select element
-                            var select = $('#model_name');
-                            $.each(response.data, function(index, item) {
-                                var option = $('<option></option>').val(item.id).text(item.name); // Adjust 'id' and 'name' based on your data
-                                select.append(option);
-                            });
+                            // Append options to the select element
+                                var select = $('#pro_name');
+                                $.each(response.data, function(index, item) {
+                                    var option = $('<option></option>').val(item.id).text(item.name); // Adjust 'id' and 'name' based on your data
+                                    select.append(option);
+                                });
                             }
                             else {
                                 // Handle no data case
-                                $('#model_name').append('<option value="">No data available</option>');
+                                $('#pro_name').append('<option value="">No data available</option>');
                             }
                         },
                         error: function(error) {
@@ -169,7 +191,8 @@ if (isset($_SESSION["user"])) {
                              <div class="card">
                                 
                                 <?php
-                                if (isset($_REQUEST['add_product'])) {
+                                //if (isset($_REQUEST['add_product'])) {
+                                if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     //  echo "<script>alert('Invalid Email & Password!');</script>";
 
                                     $brand_id = $_REQUEST['brand_id'];    
@@ -181,9 +204,18 @@ if (isset($_SESSION["user"])) {
                                     $saling_price = $_REQUEST['saling_price'];
                                     $editor = $_REQUEST['editorContent'];
 
-                                    $query = "INSERT INTO `mstocktable` (`company_id`,`product_type_id`,`name`,`model`,`quantity`,`price`,`saling_price`,`editor`,`activeStatus`,`createdBy`) 
-                                    VALUES ('$brand_id','$productType','$pro_name','$model','$quantiy','$price','$saling_price','$editor','Y','1')";
 
+                                    // Check if already Exists or not if not then INSERT else UPDATE
+                                    $query="";
+                                    $checkIsStockExistsORNotQ="SELECT stock_id FROM mstocktable WHERE model_id='".$model."'";
+                                    $checkIsStockExistsORNotEQ=mysqli_query($conn, $checkIsStockExistsORNotQ);
+                                    if($checkIsStockExistsORNotQ && mysqli_num_rows($checkIsStockExistsORNotEQ) > 0){
+                                        $query = "UPDATE mstocktable SET quantity=quantity +'".$quantiy."', price='".$price."', saling_price='".$saling_price."'  WHERE name='".$pro_name."' AND model_id='".$model."'";                                        
+                                    }
+                                    else{
+                                        $query = "INSERT INTO `mstocktable` (`company_id`,`product_type_id`,`name`,`model_id`,`quantity`,`price`,`saling_price`,`editor`,`activeStatus`,`createdBy`) VALUES ('$brand_id','$productType','$pro_name','$model','$quantiy','$price','$saling_price','$editor','Y','1')";                                        
+                                    }
+                                    
                                     // echo $query;
                                     // exit();
                                   if (mysqli_query($conn, $query)) {
@@ -199,7 +231,7 @@ if (isset($_SESSION["user"])) {
                                     }
                                 }
                                 ?>
-                                <form action="stock_entry.php" method="POST" enctype="multipart/form-data">
+                                <form action="stock_entry.php" method="POST" enctype="multipart/form-data" id='StockEntryForm'>
                                     <div class="card-body">
                                         <!-- Row start -->
                                         <div class="row gutters">   
@@ -257,12 +289,12 @@ if (isset($_SESSION["user"])) {
                                                 <div class="field-wrapper-group">
                                                     <!-- Field wrapper start -->
                                                     <div class="field-wrapper">
-                                                        <select class="select-single js-states" name="model_name" id="model_name" title="Select Model" data-live-search="true" disabled>
-                                                            <option value="Select Model Name">Select Model Name</option>
+                                                        <select class="select-single js-states" name="pro_name" id="pro_name" title="Select Product" data-live-search="true" disabled>
+                                                            <option value="Select Product">Select Product</option>
                                                         </select>
-                                                        <div class="field-placeholder">Model Name<span class="text-danger">*</span></div>
+                                                        <div class="field-placeholder">Product Name<span class="text-danger">*</span></div>
                                                         <div class="form-text">
-                                                            Please enter model name.
+                                                            Please Select Product.
                                                         </div>
                                                     </div> 
                                                     <!-- Field wrapper end -->
@@ -273,10 +305,10 @@ if (isset($_SESSION["user"])) {
                                                 <div class="field-wrapper-group">
                                                     <!-- Field wrapper start -->
                                                     <div class="field-wrapper">
-                                                        <input class="form-control" name="pro_name" id="pro_name" type="text" placeholder="Product Name" required>
-                                                        <div class="field-placeholder">Product Name<span class="text-danger">*</span></div>
+                                                        <input class="form-control" name="model_name" id="model_name" type="text" placeholder="Model Name" required>
+                                                        <div class="field-placeholder">Model Name<span class="text-danger">*</span></div>
                                                         <div class="form-text">
-                                                            Please enter product name.
+                                                            Please enter model name.
                                                         </div>
                                                     </div> 
                                                     <!-- Field wrapper end -->
@@ -384,21 +416,23 @@ if (isset($_SESSION["user"])) {
                                   <thead>
                                     <tr>
                                       <th>S.No.</th>
-                                      <th>Name</th>
+                                      <!--<th>Name</th>-->
                                       <th>Type / Company</th>
+                                      <th>Product Name</th>
                                       <th>Model</th>
                                       <th>Quantity</th>
                                       <th>Price</th>
                                       <th>Selling Price</th>
-                                      <th>Status</th>
+                                      <th>Detailss</th>
                                       <th>Update</th>
                                       <th>Actions</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                                 <?php
-                                    $query = "SELECT stock_id,st.company_id,mc.name as company,st.product_type_id,pt.name as productType,st.stock_id,st.name as stockName,st.model,st.quantity,st.price,st.saling_price,st.editor,st.activeStatus FROM `mstocktable` st
+                                    $query = "SELECT stock_id,st.company_id,mc.name as company,st.product_type_id, pd.name as name, pt.name as productType,st.stock_id,st.name as stockName,st.model_id,st.quantity,st.price,st.saling_price,st.editor,st.activeStatus FROM `mstocktable` st
                                             inner join machinecompanytable mc on mc.company_id = st.company_id
+                                            inner join mproductddetailstable pd on pd.product_id = st.name
                                             inner join mproducttypename pt on pt.product_type_id = st.product_type_id
                                                  WHERE --st.activeStatus = 'Y' 
                                                  ORDER BY st.stock_id desc";
@@ -410,14 +444,17 @@ if (isset($_SESSION["user"])) {
                                                         <td>
                                                             <?php echo $sno; ?>.
                                                         </td>
-                                                        <td>
-                                                            <?php echo "<b>" .$row['stockName']; ?>
-                                                        </td>
+                                                        <!--<td>
+                                                            <?php //echo "<b>" .$row['stockName']; ?>
+                                                        </td>-->
                                                         <td>
                                                             <?php echo "<b>" .$row['productType']; ?> | <?php echo $row['company']. "</b>";; ?>
                                                         </td>
                                                         <td>
-                                                            <?php echo $row['model']; ?>
+                                                            <?php echo "<b>".$row['name']."</b>"; ?>
+                                                        </td>
+                                                        <td>
+                                                            <?php echo $row['model_id']; ?>
                                                         </td>
                                                         <td>
                                                             <?php echo $row['quantity'];?>

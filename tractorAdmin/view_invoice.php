@@ -144,25 +144,54 @@
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>	
 
 
+<?php
 
+	if($invoiceData["status"]==="F"){
+		
+?>
 
+<script>
 
+	$(document).ready(function(){
+		$("#rejectInvoice").click(function(){
+			//
+			const invoice_id=<?php echo $invoice_id; ?>;
+			const cnfrm=confirm("Are you sure your want to reject this Invoice");
+			if(cnfrm){
+				var datas={
+					"invoice_id": invoice_id,
+					"type": "rejectInvoice"																									
+				};
+				$.ajax({
+					url: 'function/invoice.php',
+					type: 'POST',					
+					data: {datas: JSON.stringify(datas)},
+					success: function(response) {
+						alert(response);
+					},
+					error: function(error) {
+						console.log(error);
+					}
+				});
+			}		
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+		})
+	});
 
+</script>
 
-
+<?php } ?>	
 
 
 
 
 <body>
-	
 
 <div class="container">
-<div class="row gutters">
+<div class="row gutters">		
 		<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
 			<div class="card">
 				<div class="card-body p-0">
@@ -172,9 +201,9 @@
 							<div class="row gutters">
 								<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
 									<div class="custom-actions-btns mb-5">
-										<button type="button" class="btn btn-primary" onclick="downloadPdf()">
+										<!--<button type="button" class="btn btn-primary" onclick="downloadPdf()">
 											<i class="icon-download"></i> Download
-										</button>
+										</button>-->
 
 										
 <script>
@@ -190,9 +219,17 @@
         }
     </script>
 
-										<button href="#" class="btn btn-secondary" onclick="window.print();">
+										<button href="#" class="btn btn-secondary" onclick="window.print()">
 											<i class="icon-printer"></i> Print
 										</button>
+
+										<?php 
+											if($invoiceData["status"]==="F"){
+										?>
+											<button type="button" id="rejectInvoice" class="btn btn-secondary">
+												<i class="icon-delete"></i> Reject this Invoice
+											</button>
+										<?php } ?>
 									</div>
 								</div>
 							</div>

@@ -3,7 +3,19 @@ $menu = "create-invoice";
 include 'headerAdmin/conn.php';
 if (isset($_SESSION["user"])) { 
 
+?>
+	
+	<div style='text-align :center'>
+		<form action="view-invoice.php" method="GET">
+			<label>Invoice ID</label>
+			<input type="text" class="text" id="invoice_id" name="invoice_id" required>
+			<button type="submit">Search</button>
+		</form>
+	</div>
 
+	<hr/>
+
+<?php
 
 	if(isset($_GET['invoice_id'])){
 
@@ -18,7 +30,7 @@ if (isset($_SESSION["user"])) {
 			$getInvoiceDetailsQ="SELECT invoice_id, cust_details.cust_name as cust_name, cust_details.cust_mobile as cust_mobile, cust_details.cust_address as cust_address, date, payment_terms, due_date, notes, status
 			FROM invoice
 			INNER JOIN cust_details on invoice.cust_id=cust_details.cust_id
-			WHERE invoice_id='".$invoice_id."' AND status='F'";
+			WHERE invoice_id='".$invoice_id."'";
 			$getInvoiceDetailsEQ=mysqli_query($conn, $getInvoiceDetailsQ);
 			if($getInvoiceDetailsEQ && mysqli_num_rows($getInvoiceDetailsEQ) > 0){		
 

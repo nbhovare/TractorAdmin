@@ -53,10 +53,51 @@
 
             // Status R means Rejected, D meand Draft, F means Finalized in Invoice Status
 
+
+            case "rejectInvoice":
+                //Reject Invoice
+                $invoice_id = $invoiceData["invoice_id"];
+                $status="R";
+
+                if(!checkIfInvoiceAlreadyExists($conn,$invoice_id)){
+                    echo "Invalid Invoice ID";
+                    exit;
+                }
+
+                if(checkIfInvoiceHasSubEntries($conn, $invoice_id)){
+                    $stmt = $conn->prepare("UPDATE invoice SET status = ? WHERE invoice_id = ?");
+
+                    if ($stmt === false) {
+                        die("Error preparing statement: " . $conn->error);
+                    }
+
+                    $stmt->bind_param('si', $status, $invoice_id);            
+
+                    if ($stmt->execute()) {     
+                        $finalizeAllInvoiceSubEntries="UPDATE invoice_sub SET status='R' WHERE invoice_id='".$invoice_id."'";
+                        $finalizeAllInvoiceSubEntriesEQ=mysqli_query($conn, $finalizeAllInvoiceSubEntries);
+                        if($finalizeAllInvoiceSubEntriesEQ){
+                            echo "true";
+                        }
+                        else{
+                            echo "false";
+                        }                                  
+                    } else {
+                        echo "false";            
+                    }
+                    //executeQ($stmt);     
+                    $stmt->close();                     
+                }
+                else{
+                    echo "Invalid Invoice ID";
+                }
+
+            break;
+
             case "createInvoice":
                 $invoice_id = $invoiceData["invoice_id"];
                 $invoice_date = $invoiceData["invoice_date"];
-                $due_date = $invoiceData["due_date"];
+                $due_date = $invoiceData["due_date"];                
                 $pay_terms = $invoiceData["pay_terms"];
                 $notes = $invoiceData["notes"];
                 $cust_id = $invoiceData["cust_id"];
@@ -75,8 +116,15 @@
 
                     $stmt->bind_param('sssssii', $invoice_date, $pay_terms, $due_date, $notes, $status, $cust_id, $invoice_id);            
 
-                    if ($stmt->execute()) {        
-                        echo "true";            
+                    if ($stmt->execute()) {     
+                        $finalizeAllInvoiceSubEntries="UPDATE invoice_sub SET status='F' WHERE invoice_id='".$invoice_id."'";
+                        $finalizeAllInvoiceSubEntriesEQ=mysqli_query($conn, $finalizeAllInvoiceSubEntries);
+                        if($finalizeAllInvoiceSubEntriesEQ){
+                            echo "true";
+                        }
+                        else{
+                            echo "false";
+                        }                                  
                     } else {
                         echo "false";            
                     }
@@ -93,7 +141,7 @@
                 $invoice_id = $invoiceData["invoice_id"];
                 $invoice_date = $invoiceData["invoice_date"];
                 $due_date = $invoiceData["due_date"];
-                $pay_terms = $invoiceData["pay_terms"];
+                $pay_terms = $invoiceData["pay_terms"];                
                 $notes = $invoiceData["notes"];
                 $cust_id = $invoiceData["cust_id"];
                 $status = "D";
@@ -126,6 +174,7 @@
                 $cust_id = $invoiceData["cust_id"];
                 $product_type_id = $invoiceData["product_type_id"];
                 $product_id = $invoiceData["product_type"];
+                $model_id = $invoiceData["model_id"];
                 $quantity = $invoiceData["quantity"];
                 $total_cost = $invoiceData["total_cost"];
                 $discount = $invoiceData["amt_discount"];                 
@@ -138,14 +187,14 @@
                     createInvoiceEntry($conn,$invoice_id,$cust_id,$cur_user );
                 }
                 
-                $stmt=$conn->prepare("INSERT INTO invoice_sub (sub_invoice_id, invoice_id, cust_id, product_type_id, product_id, quantity,	total_cost,	discount, amt_net, status)
-                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");       
+                $stmt=$conn->prepare("INSERT INTO invoice_sub (sub_invoice_id, invoice_id, cust_id, product_type_id, product_id, model_id, quantity,	total_cost,	discount, amt_net, status)
+                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");       
 
                 if ($stmt === false) {
                     die("Error preparing statement: " . $conn->error);
                 }   
                 
-                $stmt->bind_param("iiiiiiddds", $sub_invoice_id, $invoice_id, $cust_id, $product_type_id, $product_id, $quantity, $total_cost, $discount, $amt_net, $status);
+                $stmt->bind_param("iiiiisiddds", $sub_invoice_id, $invoice_id, $cust_id, $product_type_id, $product_id, $model_id, $quantity, $total_cost, $discount, $amt_net, $status);
 
                 if ($stmt->execute()) {        
                     echo "true";            

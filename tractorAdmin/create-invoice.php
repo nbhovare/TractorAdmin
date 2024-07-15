@@ -32,7 +32,7 @@ if (isset($_SESSION["user"])) {
 
 <script>
 	function convertDateFormat(date) {
-    const [month, day, year] = date.split('/');
+    const [day, month, year] = date.split('/');
     return `${year}-${month}-${day}`;
 }
 </script>
@@ -55,7 +55,7 @@ if (isset($_SESSION["user"])) {
 				const pay_terms=$("#pay_terms").val();
 				const due_date=$("#due_date").val();
 				const notes=$("#notes").val();
-				const cust_id=$("#cust_id").val();
+				const cust_id=$("#cust_id").val();				
 
 				function isEmpty(value) {
 					return value === null || value === undefined || value === '';
@@ -105,7 +105,7 @@ if (isset($_SESSION["user"])) {
 							type: 'POST',				
 							data: {datas: JSON.stringify(data)},								
 							success: function(response) {			
-								if(response==="true"){											
+								if(response==="true"){
 									window.location.href = "view-invoice.php?invoice_id="+invoice_id;				
 								}	
 								else{
@@ -218,13 +218,28 @@ if (isset($_SESSION["user"])) {
 						url: 'function/getProductDetails_All.php',
 						type: 'POST',
 						dataType: 'json',
-					data: "type=partialFromProduct&fields=total_cost&id_type=product_id&id="+this.value,								
+					data: "type=partialFromProduct&fields=total_cost&extra=model_id&id_type=product_id&id="+this.value,								
 						success: function(response) {
 							if(response && response.data && response.data.length > 0) {
 							// Append options to the select element					
 								$('#total_cost').val(response.data[0].total_cost);														
-								QtyChange();
-								dischange();
+								//QtyChange();
+								//dischange();
+								
+								var select = $('#model_id');	
+								if(response && response.extras && response.extras.length > 0) {									
+									// Append options to the select element					
+									select.empty();
+									select.append("<option value='Select Model'>Select Model</option>");
+									$.each(response.extras, function(index, item) {
+										var option = $('<option></option>').val(item.model_id).text(item.model_id); // Adjust 'id' and 'name' based on your data
+										select.append(option);
+									});
+								}
+								else {		
+									select.empty(); 														
+								}
+								
 							}
 							else {						
 								alert("Error");
@@ -241,6 +256,7 @@ if (isset($_SESSION["user"])) {
 	<script language="JavaScript" type="text/javascript">
 		function resetValues(){
 			$("#product_type").empty();
+			$("#model_id").empty();
 			$("#quantity").val("1");				
 			$("#amt_discount").val("0");
 			$("#total_cost").val("0");
@@ -369,7 +385,7 @@ if (isset($_SESSION["user"])) {
 								<div class="card-header-lg">
 									<h4>Create Invoice</h4>
 									<div class="text-end">
-										<a href="view-invoice.html" target="_blank" class="btn btn-light">View Invoice</a>
+										<a href="view-invoice.php?invoice_id=<?php echo $randomNumber.$DT; ?>" target="_blank" class="btn btn-light">View Invoice</a>
 									</div>
 								</div>
 								<div class="card-body">
@@ -631,6 +647,7 @@ if (isset($_SESSION["user"])) {
 														<tr>
 															<th>Product Type</th>
 															<th>Product</th>
+															<th>Model</th>
 															<th>Quantity</th>
 															<th>Price</th>
 															<th>Discount</th>
@@ -652,6 +669,15 @@ if (isset($_SESSION["user"])) {
 																<!-- Field wrapper start -->
 																<div class="field-wrapper m-0">
 																	<select class="select-single js-states w-100" id="product_type" name="product_type"
+																		data-live-search="true">																																				
+																	</select>
+																</div>
+																<!-- Field wrapper end -->
+															</td>
+															<td>
+																<!-- Field wrapper start -->
+																<div class="field-wrapper m-0">
+																	<select class="select-single js-states w-100" id="model_id" name="model_id"
 																		data-live-search="true">																																				
 																	</select>
 																</div>
@@ -909,6 +935,10 @@ if (isset($_SESSION["user"])) {
         break; // Exit the loop if an empty value is found
 	  }
 	  else if(select.value.trim() === "Select Product"){		
+		isEmpty = true;
+        break; // Exit the loop if an empty value is found		
+	  }
+	  else if(select.value.trim() === "Select Model"){		
 		isEmpty = true;
         break; // Exit the loop if an empty value is found		
 	  }
