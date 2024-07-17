@@ -643,7 +643,8 @@ if (isset($_SESSION["user"])) {
 														<thead>
 														<tr>
 															<th colspan="7" class="pt-3 pb-3">Product Details</th>
-														</tr>
+															
+														</tr>														
 														<tr>
 															<th>Product Type</th>
 															<th>Product</th>
@@ -754,8 +755,8 @@ if (isset($_SESSION["user"])) {
 																			placeholder="0%">
 																	</div>
 																</div>
-															</td>
-														</tr>														
+															</td>														
+														</tr>									
 												</table>
 												<table id="invoiceTableFinals" class="table table-bordered">
 													<thead>
@@ -765,6 +766,7 @@ if (isset($_SESSION["user"])) {
 														<tr>															
 															<th>Product Type</th>
 															<th>Product</th>
+															<th>Model Name</th>
 															<th>Quantity</th>
 															<th>Price</th>
 															<th>Discount</th>
@@ -803,7 +805,8 @@ if (isset($_SESSION["user"])) {
 
 										<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
 											<div class="form-actions-footer">
-												<h5 style='color:red'>Note: Remember to save Invoice Details</h5>
+												<h6 style='color:red'>Note: Remember to save Invoice Details</h6>
+												<h5 style='color:red'>Note: Stock will be locked based on the quantities mentioned in the Product Details even if the Invoice Status is kept as draft</h5>
 											</div>
 										</div>
 
@@ -889,9 +892,9 @@ if (isset($_SESSION["user"])) {
 						getTotal(datas.invoice_id);				
 						alert("Saved As Draft");						
 					}	
-					else{
-						alert("Error Saving Data");
-					}														
+					else{ 
+						alert("Error Saving Draft");
+					}								
 				},
 				error: function(error) {
 					console.log(error);
@@ -971,14 +974,32 @@ if (isset($_SESSION["user"])) {
 	data.cust_id=$("#cust_id").val();
 	data.invoice_id=$("#invoice_id").val();
 	data.sub_invoice_id=lastInserted;	
-	data.type="insert";	
-	saveDraft(data);		
-
-    // Append the new row to the target table body
-	const tb=$("#invoiceTableFinals");
-	tb.find("tr").eq(lastInserted+1).after(newRow);
-	lastInserted+=1;
-		
+	data.type="insert";
+	//var result=saveDraft(data);			
+	$.ajax({
+	url: 'function/invoice.php',
+	type: 'POST',				
+	data: {datas: JSON.stringify(data)},								
+	success: function(response) {			
+		if(response==="true"){		
+			// Append the new row to the target table body
+			const tb=$("#invoiceTableFinals");
+			tb.find("tr").eq(lastInserted+1).after(newRow);
+			lastInserted+=1;
+			getTotal(datas.invoice_id);				
+			alert("Saved As Draft");						
+		}	
+		else if(response==="false"){
+			alert("Error Saving Draft");
+		}
+		else{			
+			alert(response);
+		}
+	},
+	error: function(error) {
+		console.log(error);
+	}
+});		  	 		
   }
   resetFormElements();
 }

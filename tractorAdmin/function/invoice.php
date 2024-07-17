@@ -183,27 +183,36 @@
 
                 // check if invoice already exists in invoice table if not then first create invoice entry then proceed for adding items/ adding entries in sub_invoice table
 
-                if(!checkIfInvoiceAlreadyExists($conn,$invoice_id)){
-                    createInvoiceEntry($conn,$invoice_id,$cust_id,$cur_user );
+                // Check if stock has quantity equal to or greater that the requested quantity which is requested in this entry
+
+                $checkIsStockHasQuantityQ="SELECT stock_id FROM mstocktable WHERE name='".$product_id."' AND model_id='".$model_id."' AND quantity>=('".$quantity."'+IFNULL((Select sum(quantity) from invoice_sub where product_id='".$product_id."' AND status='D' AND model_id='".$model_id."'),0))";
+
+                $checkIsStockHasQuantityEQ=mysqli_query($conn, $checkIsStockHasQuantityQ);
+                if($checkIsStockHasQuantityEQ && mysqli_num_rows($checkIsStockHasQuantityEQ) > 0){
+                    if(!checkIfInvoiceAlreadyExists($conn,$invoice_id)){
+                        createInvoiceEntry($conn,$invoice_id,$cust_id,$cur_user );
+                    }
+                    
+                    $stmt=$conn->prepare("INSERT INTO invoice_sub (sub_invoice_id, invoice_id, cust_id, product_type_id, product_id, model_id, quantity,	total_cost,	discount, amt_net, status)
+                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");       
+    
+                    if ($stmt === false) {
+                        die("Error preparing statement: " . $conn->error);
+                    }   
+                    
+                    $stmt->bind_param("iiiiisiddds", $sub_invoice_id, $invoice_id, $cust_id, $product_type_id, $product_id, $model_id, $quantity, $total_cost, $discount, $amt_net, $status);
+    
+                    if ($stmt->execute()) {        
+                        echo "true";            
+                    } else {
+                        echo "false";            
+                    }
+                    //executeQ($stmt);     
+                    $stmt->close();                      
+                }     
+                else{
+                    echo "Quantity OUT-OF-STOCK";
                 }
-                
-                $stmt=$conn->prepare("INSERT INTO invoice_sub (sub_invoice_id, invoice_id, cust_id, product_type_id, product_id, model_id, quantity,	total_cost,	discount, amt_net, status)
-                        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");       
-
-                if ($stmt === false) {
-                    die("Error preparing statement: " . $conn->error);
-                }   
-                
-                $stmt->bind_param("iiiiisiddds", $sub_invoice_id, $invoice_id, $cust_id, $product_type_id, $product_id, $model_id, $quantity, $total_cost, $discount, $amt_net, $status);
-
-                if ($stmt->execute()) {        
-                    echo "true";            
-                } else {
-                    echo "false";            
-                }
-                //executeQ($stmt);     
-                $stmt->close();           
-
             break;
 
 
