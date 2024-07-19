@@ -380,32 +380,23 @@ include 'headers/conn.php';
 <script>
         $(document).ready(function() {
 
-
-
-
-
             function getCheckedValues(inputName) {
-    // Get all checkboxes with the specified name that are checked
-    let checkboxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
-    let values = [];
+                // Get all checkboxes with the specified name that are checked
+                let checkboxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
+                let values = [];
 
-    // Iterate over checked checkboxes and collect their values
-    checkboxes.forEach((checkbox) => {
-        values.push(checkbox.value);
-    });
+                // Iterate over checked checkboxes and collect their values
+                checkboxes.forEach((checkbox) => {
+                    values.push(checkbox.value);
+                });
 
-    return values;
+                return values;
 
-    // Print the values
-    //console.log(`Selected ${inputName.split('[')[0]}s: `, values);
-}
+                // Print the values
+                //console.log(`Selected ${inputName.split('[')[0]}s: `, values);
+            }
 
-
-
-
-        
-
-            const itemsPerPage = 4;  // Number of items to show per page
+            const itemsPerPage = 1000;  // Number of items to show per page
             let currentPage = 1;
             let data = [];
 
@@ -417,49 +408,35 @@ include 'headers/conn.php';
 
             function fetchData() {
                 var data={
-                brand: getCheckedValues("brand[]"),
-                product: getCheckedValues("model[]"),
-                hp: getCheckedValues("hp[]")                
-            };
-            $.ajax({
-				url: './filter.php',
-				type: 'POST',				
-				data: {datas: JSON.stringify(data)},								
-				success: function(response) {	
-                    console.log("Data fetched successfully:", response);                    
-                        data = response.data;
-                        console.log(data[0]);
-                        currentPage = 1;
-                        renderPagination();
-                        renderPage(currentPage);
-                    },
-                    error: function(error) {
-                        console.error('Error fetching data:', error);
-                    }
-                });
-            }
-  /*          function fetchData() {
+                    brand: getCheckedValues("brand[]"),
+                    product: getCheckedValues("model[]"),
+                    hp: getCheckedValues("hp[]")                
+                };
                 $.ajax({
-                    url: 'your-ajax-endpoint.php', // replace with your endpoint
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        
+                    url: './filter.php',
+                    type: 'POST',				
+                    data: {datas: JSON.stringify(data)},								
+                    success: function(response) {	
+                        console.log("Data fetched successfully:", response);                    
+                        data = response.data;
+                        $('#card-container').empty();
+                        currentPage = 1;
+                        renderPagination(data);
+                        renderPage(currentPage, data);
                     },
                     error: function(error) {
                         console.error('Error fetching data:', error);
                     }
                 });
             }
-*/
-            function renderPage(page) {
+
+            function renderPage(page, data) {                
                 const startIndex = (page - 1) * itemsPerPage;
                 const endIndex = startIndex + itemsPerPage;
                 const pageData = data.slice(startIndex, endIndex);
-
-                $('#card-container').empty();
-
+                
                 pageData.forEach(function(item) {
+                
                     const cardHTML = `
                         <div class="col-xxl-4 col-xl-4 col-sm-6">
                             <div class="used-inner" id="">
@@ -494,11 +471,12 @@ include 'headers/conn.php';
                             </div>
                         </div>
                     `;
+
                     $('#card-container').append(cardHTML);
                 });
             }
 
-            function renderPagination() {
+            function renderPagination(data) {
                 const totalPages = Math.ceil(data.length / itemsPerPage);
                 const pagination = $('#pagination');
                 pagination.empty();
